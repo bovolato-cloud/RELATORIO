@@ -76,6 +76,8 @@ export default function App() {
     e.preventDefault();
     if (editingEmpresa.id) {
       setEmpresas(empresas.map(emp => emp.id === editingEmpresa.id ? editingEmpresa : emp));
+      // Atualiza também o nome da empresa nas parcelas se houver alteração
+      setParcelas(parcelas.map(p => p.empresaId === editingEmpresa.id ? { ...p, empresaNome: editingEmpresa.nome } : p));
     } else {
       setEmpresas([...empresas, { ...editingEmpresa, id: Date.now() }]);
     }
@@ -175,7 +177,8 @@ export default function App() {
                       </span>
                     </div>
 
-                    <p className="text-xs text-gray-500 mb-3">CNPJ: {emp.cnpj || 'Não informado'}</p>
+                    <p className="text-xs text-gray-500 mb-1">CNPJ: {emp.cnpj || 'Não informado'}</p>
+                    <p className="text-xs text-gray-500 mb-3">Endereço: {emp.endereco || 'Não informado'}</p>
 
                     <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4 text-xs space-y-1">
                       <p className="font-semibold text-gray-700 flex items-center gap-1">
@@ -189,7 +192,7 @@ export default function App() {
                   {/* BARRA DE AÇÕES (EDITAR / EXCLUIR / WHATSAPP) */}
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-2">
                     <a 
-                      href={`https://wa.me/${emp.whatsapp.replace(/\D/g,'')}`} 
+                      href={`https://wa.me/${String(emp.whatsapp).replace(/\D/g,'')}`} 
                       target="_blank" 
                       rel="noreferrer" 
                       className="text-xs bg-green-600 text-white px-3 py-1.5 rounded flex items-center gap-1 hover:bg-green-700"
@@ -301,7 +304,7 @@ export default function App() {
       {/* ================= MODAL DE EDIÇÃO/CRIAÇÃO DE EMPRESA ================= */}
       {editingEmpresa && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
             <h3 className="text-lg font-bold mb-4">{editingEmpresa.id ? 'Editar Empresa' : 'Nova Empresa'}</h3>
             <form onSubmit={handleSaveEmpresa} className="space-y-3">
               <div>
@@ -310,8 +313,17 @@ export default function App() {
                   type="text" 
                   required 
                   className="w-full border p-2 rounded text-sm" 
-                  value={editingEmpresa.nome} 
+                  value={editingEmpresa.nome || ''} 
                   onChange={e => setEditingEmpresa({ ...editingEmpresa, nome: e.target.value })} 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">CNPJ / CPF</label>
+                <input 
+                  type="text" 
+                  className="w-full border p-2 rounded text-sm" 
+                  value={editingEmpresa.cnpj || ''} 
+                  onChange={e => setEditingEmpresa({ ...editingEmpresa, cnpj: e.target.value })} 
                 />
               </div>
               <div>
@@ -319,15 +331,24 @@ export default function App() {
                 <input 
                   type="text" 
                   className="w-full border p-2 rounded text-sm" 
-                  value={editingEmpresa.whatsapp} 
+                  value={editingEmpresa.whatsapp || ''} 
                   onChange={e => setEditingEmpresa({ ...editingEmpresa, whatsapp: e.target.value })} 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Endereço</label>
+                <input 
+                  type="text" 
+                  className="w-full border p-2 rounded text-sm" 
+                  value={editingEmpresa.endereco || ''} 
+                  onChange={e => setEditingEmpresa({ ...editingEmpresa, endereco: e.target.value })} 
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Status do Convite</label>
                 <select 
                   className="w-full border p-2 rounded text-sm" 
-                  value={editingEmpresa.statusConvite} 
+                  value={editingEmpresa.statusConvite || 'A Convidar'} 
                   onChange={e => setEditingEmpresa({ ...editingEmpresa, statusConvite: e.target.value })}
                 >
                   <option value="A Convidar">A Convidar</option>
@@ -336,11 +357,11 @@ export default function App() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Nome para Troféu/Diploma</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Nome para Troféu / Diploma</label>
                 <input 
                   type="text" 
                   className="w-full border p-2 rounded text-sm" 
-                  value={editingEmpresa.trofeuNome} 
+                  value={editingEmpresa.trofeuNome || ''} 
                   onChange={e => setEditingEmpresa({ ...editingEmpresa, trofeuNome: e.target.value })} 
                 />
               </div>
@@ -349,7 +370,7 @@ export default function App() {
                 <input 
                   type="text" 
                   className="w-full border p-2 rounded text-sm" 
-                  value={editingEmpresa.trofeuCategoria} 
+                  value={editingEmpresa.trofeuCategoria || ''} 
                   onChange={e => setEditingEmpresa({ ...editingEmpresa, trofeuCategoria: e.target.value })} 
                 />
               </div>
@@ -357,7 +378,7 @@ export default function App() {
                 <button 
                   type="button" 
                   onClick={() => setEditingEmpresa(null)} 
-                  className="px-4 py-2 border rounded text-sm text-gray-600"
+                  className="px-4 py-2 border rounded text-sm text-gray-600 hover:bg-gray-50"
                 >
                   Cancelar
                 </button>
@@ -376,7 +397,7 @@ export default function App() {
       {/* ================= MODAL DE EDIÇÃO/CRIAÇÃO DE PARCELA ================= */}
       {editingParcela && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
             <h3 className="text-lg font-bold mb-4">{editingParcela.id ? 'Editar Parcela' : 'Novo Lançamento'}</h3>
             <form onSubmit={handleSaveParcela} className="space-y-3">
               <div>
@@ -385,7 +406,7 @@ export default function App() {
                   type="text" 
                   required 
                   className="w-full border p-2 rounded text-sm" 
-                  value={editingParcela.empresaNome} 
+                  value={editingParcela.empresaNome || ''} 
                   onChange={e => setEditingParcela({ ...editingParcela, empresaNome: e.target.value })} 
                 />
               </div>
@@ -396,7 +417,7 @@ export default function App() {
                   step="0.01" 
                   required 
                   className="w-full border p-2 rounded text-sm" 
-                  value={editingParcela.valor} 
+                  value={editingParcela.valor || ''} 
                   onChange={e => {
                     const val = parseFloat(e.target.value) || 0;
                     const comVal = (val * (editingParcela.comissaoPorcentagem || 10)) / 100;
@@ -410,7 +431,7 @@ export default function App() {
                   type="date" 
                   required 
                   className="w-full border p-2 rounded text-sm" 
-                  value={editingParcela.vencimento} 
+                  value={editingParcela.vencimento || ''} 
                   onChange={e => setEditingParcela({ ...editingParcela, vencimento: e.target.value })} 
                 />
               </div>
@@ -418,21 +439,4 @@ export default function App() {
                 <button 
                   type="button" 
                   onClick={() => setEditingParcela(null)} 
-                  className="px-4 py-2 border rounded text-sm text-gray-600"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit" 
-                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700"
-                >
-                  Salvar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                  className="px-4 py-2 border rounded text-sm text-gray-600 hover:bg-gray-50"
